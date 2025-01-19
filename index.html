@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: #f0f8ff;
+            color: #333;
+        }
+
+        .weather-info {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: inline-block;
+        }
+
+        input {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Weather App</h1>
+    <p>Enter a location or allow location access to get the weather information.</p>
+    <input type="text" id="locationInput" placeholder="Enter city name">
+    <button onclick="fetchWeather()">Get Weather</button>
+    <button onclick="getLocation()">Use My Location</button>
+    <div class="weather-info" id="weatherInfo" style="display: none;">
+        <h2 id="city"></h2>
+        <p id="description"></p>
+        <p><strong>Temperature:</strong> <span id="temperature"></span>°C</p>
+        <p><strong>Humidity:</strong> <span id="humidity"></span>%</p>
+        <p><strong>Wind Speed:</strong> <span id="windSpeed"></span> km/h</p>
+    </div>
+
+    <script>
+        const apiKey = "curl --request GET --url 'https://api.tomorrow.io/v4/weather/forecast?location=42.3478,-71.0466&apikey=5h3sgjTs9ftPxkK1ijOPRwIQ04SkMyrE'" ;
+
+        function fetchWeather() {
+            const location = document.getElementById('locationInput').value;
+            if (!location) {
+                alert('Please enter a location!');
+                return;
+            }
+            fetchWeatherData(location);
+        }
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        fetchWeatherDataByCoords(lat, lon);
+                    },
+                    () => alert('Unable to access location.'),
+                );
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function fetchWeatherData(location) {
+            fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}&units=metric`)
+                .then((response) => response.json())
+                .then((data) => updateWeatherInfo(data))
+                .catch((error) => alert('Error fetching weather data.'));
+        }
+
+        function fetchWeatherDataByCoords(lat, lon) {
+            fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`)
+                .then((response) => response.json())
+                .then((data) => updateWeatherInfo(data))
+                .catch((error) => alert('Error fetching weather data.'));
+        }
+
+        function updateWeatherInfo(data) {
+            if (data.cod !== 200) {
+                alert(data.message);
+                return;
+            }
+            document.getElementById('city').textContent = data.name;
+            document.getElementById('description').textContent = data.weather[0].description;
+            document.getElementById('temperature').textContent = data.main.temp;
+            document.getElementById('humidity').textContent = data.main.humidity;
+            document.getElementById('windSpeed').textContent = (data.wind.speed * 3.6).toFixed(2);
+            document.getElementById('weatherInfo').style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
